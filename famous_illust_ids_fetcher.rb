@@ -6,39 +6,28 @@ require 'pixiv'
 require_relative 'utils'
 
 # 複数Followingがお気に入り登録しているイラストIDを取得する
+#
 class FamousIllustIdsFetcher < EM::DefaultDeferrable
   include Utils
 
-  attr_reader :illust_ids
+  attr_reader :jobs
 
-  def initialize(config, pixiv, options)
+  def initialize(config, pixiv, con_opts, req_opts)
     @config = config
     @pixiv = pixiv
-    @options = options
+    @con_opts = con_opts
+    @req_opts = req_opts
 
-    @illust_ids = []
+    @jobs = {}
   end
 
   def fetch
-    fetch_following_member_ids do |member_ids|
-      multi = EM::MultiRequest.new
-      member_ids.each do |member_id|
-        (1..3).each do |p|
-          multi.add([member_id, p], EM::HttpRequest.new("#{Pixiv::ROOT_URL}/bookmark.php?id=#{member_id}&rest=show&p=#{p}").get(@options))
-        end
-      end
-
-      multi.callback do
-        count_by_illust_id = Hash.new(0)
-        multi.responses[:callback].each do |name, conn|
-          extract_illust_ids(conn.response).each do |illust_id|
-            count_by_illust_id[illust_id] += 1
-          end
-        end
-        @illust_ids = count_by_illust_id.reject{|k, v| v < 2}.keys
-        succeed(@illust_ids)
-      end
-    end
+    fetch_following_member_ids {|member_ids|
+      fetch_jobs(member_ids) {|jobs|
+        @jobs = jobs
+        succeed @jobs
+      }
+    }
 
     self
   end
@@ -47,17 +36,52 @@ class FamousIllustIdsFetcher < EM::DefaultDeferrable
     last_page = @pixiv.agent.get("#{Pixiv::ROOT_URL}/bookmark.php?type=user").search('.pages:first-child li:nth-last-child(2) a').inner_text.to_i
 
     multi = EM::MultiRequest.new
-    (1..last_page).each do |p|
-      multi.add(p, EM::HttpRequest.new("#{Pixiv::ROOT_URL}/bookmark.php?type=user&rest=show&p=#{p}").get(@options))
-    end
+    (1..last_page).each {|p|
+      url = "#{Pixiv::ROOT_URL}/bookmark.php?type=user&rest=show&p=#{p}"
+      multi.add(p, EM::HttpRequest.new(url, @con_opts).get(@req_opts))
+    }
 
-    multi.callback do
+    multi.callback {
+      log_multi_stat(multi)
       member_ids = []
-      multi.responses[:callback].each do |name, conn|
+      multi.responses[:callback].each {|name, conn|
         doc = Nokogiri::HTML(conn.response)
         member_ids += doc.search('.userdata a').map{|e| $1 if e[:href] =~ /id=(\d+)/}
-      end
+      }
       yield member_ids
-    end
+    }
+  end
+
+  def fetch_jobs(member_ids)
+    urls = []
+    member_ids.each {|member_id|
+      (1..3).each {|p|
+        url = "#{Pixiv::ROOT_URL}/bookmark.php?id=#{member_id}&rest=show&p=#{p}"
+        urls << url
+      }
+    }
+
+    count_by_illust_id = Hash.new(0)
+    EM::Iterator.new(urls, 20).each(proc{|url, iter|
+      http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)
+      http.callback {
+        extract_illust_ids(http.response).each {|illust_id|
+          count_by_illust_id[illust_id] += 1
+        }
+        print '.'
+        iter.next
+      }
+      http.errback {
+        p http.error
+        iter.next
+      }
+    }, proc{
+      illust_ids = count_by_illust_id.reject{|k, v| v < 2}.keys
+      jobs = {}
+      illust_ids.each {|illust_id|
+        jobs[illust_id] = {name: :famous, score_threshold: 100}
+      }
+      yield jobs
+    })
   end
 end
