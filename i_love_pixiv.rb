@@ -32,7 +32,7 @@ class ILovePixiv
     @pixiv = Pixiv.client(@config[:id], @config[:password]) {|agent|
       agent.user_agent_alias = 'Mac Safari'
     }
-    @con_opts = {} #{proxy: {host: '127.0.0.1', port: 9050, type: :socks5}}
+    @con_opts = {} #{proxy: {host: '127.0.0.1', port: 9050, type: :socks5}} # 本当は個別に設定したいが、上手く動かない
     @req_opts = {
       head: {
         'user-agent' => @pixiv.agent.user_agent,
@@ -45,10 +45,10 @@ class ILovePixiv
 
   def run
     posted_illust_ids = Marshal.load(open('posted_illust_ids.marshal')) rescue []
-    p posted_illust_ids
+    #p posted_illust_ids
     at_exit {
       puts 'Saving posted illust ids'
-      p posted_illust_ids
+      #p posted_illust_ids
       Marshal.dump(posted_illust_ids, open('posted_illust_ids.marshal', 'w'))
     }
 
@@ -56,8 +56,8 @@ class ILovePixiv
       puts 'fetch_jobs:'
       fetch_jobs {|jobs|
         puts 'filter_jobs_to_illusts:'
-        jobs = Hash[jobs.to_a.sample(4)]
-        p jobs
+        #jobs = Hash[jobs.to_a.sample(4)]
+        #p jobs
         filter_jobs_to_illusts(jobs, posted_illust_ids) {|illusts|
           puts 'post_illust_to_pirage:'
           post_illust_to_pirage(illusts) {|posted_illusts|
@@ -74,7 +74,7 @@ class ILovePixiv
     multi = EM::MultiRequest.new
 
     multi.add :simple_illust_ids_fetcher, SimpleIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
-    #multi.add :famous_illust_ids_fetcher, FamousIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
+    multi.add :famous_illust_ids_fetcher, FamousIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
 
     multi.callback {
       jobs = multi.responses[:callback].values.map{|e| e.jobs}.inject{|memo, item| memo.merge(item)} # 上書きする可能性あり
@@ -92,7 +92,7 @@ class ILovePixiv
         doc = Nokogiri::HTML(http.response)
         illust = Pixiv::Illust.new(doc)
         name = jobs[illust_id]
-        illusts << illust if illust.score >= (name[:score_threshold] || 0)
+        illusts << illust if (illust.score >= (name[:score_threshold] || 0) rescue false)
         print '.'
         iter.next
       }
