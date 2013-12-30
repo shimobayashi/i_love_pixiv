@@ -1,3 +1,5 @@
+# -*- encoding: utf-8 -*-
+
 require 'rubygems'
 require 'pit'
 require 'pixiv'
@@ -7,10 +9,14 @@ require 'nokogiri'
 require_relative 'simple_illust_ids_fetcher'
 require_relative 'famous_illust_ids_fetcher'
 require_relative 'utils'
+require_relative 'pirage'
 
 module Pixiv
   class Illust
     lazy_attr_reader(:illust_id) { at!('link[rel="alternate"][hreflang="ja"]')[:href][/illust_id=(\d+)/, 1].to_i }
+    lazy_attr_reader(:member_name) {
+      at!('title').inner_text[%r!「#{Regexp.escape(title)}」/「(.+)」の(?:イラスト|漫画) \[pixiv\]!, 1]
+    }
   end
 end
 
@@ -27,16 +33,23 @@ class ILovePixiv
       agent.user_agent_alias = 'Mac Safari'
     }
     @con_opts = {} #{proxy: {host: '127.0.0.1', port: 9050, type: :socks5}}
-    @req_opts = {head: {cookie: @pixiv.agent.cookie_jar.to_a}}
+    @req_opts = {
+      head: {
+        'user-agent' => @pixiv.agent.user_agent,
+        'accept-language' => 'ja',
+        'referer' => 'http://www.pixiv.net/mypage.php',
+        'cookie' => @pixiv.agent.cookie_jar.to_a,
+      }
+    }
   end
 
   def run
-    seen_illust_ids = Marshal.load(open('seen_illust_ids.marshal')) rescue []
-    p seen_illust_ids
+    posted_illust_ids = Marshal.load(open('posted_illust_ids.marshal')) rescue []
+    p posted_illust_ids
     at_exit {
-      puts 'Saving seen illust ids'
-      p seen_illust_ids
-      Marshal.dump(seen_illust_ids, open('seen_illust_ids.marshal', 'w'))
+      puts 'Saving posted illust ids'
+      p posted_illust_ids
+      Marshal.dump(posted_illust_ids, open('posted_illust_ids.marshal', 'w'))
     }
 
     EM.run {
@@ -45,10 +58,13 @@ class ILovePixiv
         puts 'filter_jobs_to_illusts:'
         jobs = Hash[jobs.to_a.sample(4)]
         p jobs
-        filter_jobs_to_illusts(jobs, seen_illust_ids) {|illusts|
-          seen_illust_ids += illusts.map{|e| e.illust_id}
-          p illusts.map{|e| e.title}
-          EM.stop
+        filter_jobs_to_illusts(jobs, posted_illust_ids) {|illusts|
+          puts 'post_illust_to_pirage:'
+          post_illust_to_pirage(illusts) {|posted_illusts|
+            posted_illust_ids += posted_illusts.map{|e| e.illust_id}
+            p illusts.map{|e| e.title}
+            EM.stop
+          }
         }
       }
     }
@@ -66,8 +82,8 @@ class ILovePixiv
     }
   end
 
-  def filter_jobs_to_illusts(jobs, seen_illust_ids)
-    illust_ids = jobs.keys - seen_illust_ids
+  def filter_jobs_to_illusts(jobs, posted_illust_ids)
+    illust_ids = jobs.keys - posted_illust_ids
     illusts = []
     EM::Iterator.new(illust_ids, 10).each(proc{|illust_id, iter|
       url = Pixiv::Illust.url(illust_id)
@@ -86,6 +102,35 @@ class ILovePixiv
       }
     }, proc{
       yield illusts
+    })
+  end
+
+  def post_illust_to_pirage(illusts)
+    posted_illusts = []
+    EM::Iterator.new(illusts, 10).each(proc{|illust, iter|
+      url = illust.medium_image_url
+      http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)
+      http.callback {
+        #XXX
+        p Pirage.post(
+          illust.member_name || '',
+          illust.title,
+          illust.url,
+          illust.tag_names,
+          illust.title,
+          http.response.force_encoding('UTF-8')
+
+        )
+        posted_illusts << illust
+        print '.'
+        iter.next
+      }
+      http.errback {
+        p http.error
+        iter.next
+      }
+    }, proc{
+      yield posted_illusts
     })
   end
 end
