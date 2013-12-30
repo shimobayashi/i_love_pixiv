@@ -112,11 +112,13 @@ class ILovePixiv
       http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)
       http.callback {
         #XXX
+        tags = illust.tag_names
+        tags << 'R-00' if (['R-18', 'R-18G'] & illust.tag_names).length > 0
         p Pirage.post(
           illust.member_name || '',
           illust.title,
           illust.url,
-          illust.tag_names,
+          tags,
           illust.title,
           http.response.force_encoding('UTF-8')
 
