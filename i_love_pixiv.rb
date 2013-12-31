@@ -62,7 +62,7 @@ class ILovePixiv
           puts 'post_illust_to_pirage:'
           post_illust_to_pirage(illusts) {|posted_illusts|
             posted_illust_ids += posted_illusts.map{|e| e.illust_id}
-            p illusts.map{|e| e.title}
+            p posted_illusts.map{|e| e.title}
             EM.stop
           }
         }
@@ -113,7 +113,7 @@ class ILovePixiv
       http.callback {
         #XXX
         tags = illust.tag_names
-        tags << 'R-00' if (['R-18', 'R-18G'] & illust.tag_names).length > 0
+        tags << 'R-00' if (['R-18', 'R-18G'] & illust.tag_names).length == 0
         p Pirage.post(
           illust.member_name || '',
           illust.title,
