@@ -3,7 +3,7 @@ require 'nokogiri'
 module Utils
   def extract_illust_ids(html)
     doc = Nokogiri::HTML(html)
-    doc.search('a.work').map{|e| $1 if e[:href] =~ /illust_id=(\d+)/}
+    doc.search('a.work').map{|e| $1.to_i if e[:href] =~ /illust_id=(\d+)/}
   end
 
   def log_multi_stat(multi)

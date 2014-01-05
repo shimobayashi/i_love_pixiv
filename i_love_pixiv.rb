@@ -8,6 +8,7 @@ require 'nokogiri'
 
 require_relative 'simple_illust_ids_fetcher'
 require_relative 'famous_illust_ids_fetcher'
+require_relative 'recommended_illust_ids_fetcher'
 require_relative 'utils'
 require_relative 'pirage'
 
@@ -60,7 +61,7 @@ class ILovePixiv
         #p jobs
         filter_jobs_to_illusts(jobs, posted_illust_ids) {|illusts|
           puts 'post_illust_to_pirage:'
-          post_illust_to_pirage(illusts) {|posted_illusts|
+          post_illust_to_pirage(illusts, jobs) {|posted_illusts|
             posted_illust_ids += posted_illusts.map{|e| e.illust_id}
             p posted_illusts.map{|e| e.title}
             EM.stop
@@ -75,6 +76,7 @@ class ILovePixiv
 
     multi.add :simple_illust_ids_fetcher, SimpleIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
     multi.add :famous_illust_ids_fetcher, FamousIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
+    multi.add :recommended_illust_ids_fetcher, RecommendedIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
 
     multi.callback {
       jobs = multi.responses[:callback].values.map{|e| e.jobs}.inject{|memo, item| memo.merge(item)} # 上書きする可能性あり
@@ -105,7 +107,7 @@ class ILovePixiv
     })
   end
 
-  def post_illust_to_pirage(illusts)
+  def post_illust_to_pirage(illusts, jobs)
     posted_illusts = []
     EM::Iterator.new(illusts, 10).each(proc{|illust, iter|
       url = illust.medium_image_url
@@ -114,6 +116,7 @@ class ILovePixiv
         #XXX
         tags = illust.tag_names
         tags << 'R-00' if (['R-18', 'R-18G'] & illust.tag_names).length == 0
+        tags << jobs[illust.illust_id][:name]
         p Pirage.post(
           illust.member_name || '',
           illust.title,
