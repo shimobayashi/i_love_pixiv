@@ -1,16 +1,15 @@
 # -*- encoding: utf-8 -*-
 
-require 'rubygems'
 require 'pit'
 require 'pixiv'
 require 'eventmachine'
 require 'nokogiri'
+require 'base64'
 
 require_relative 'simple_illust_ids_fetcher'
 require_relative 'famous_illust_ids_fetcher'
 require_relative 'recommended_illust_ids_fetcher'
 require_relative 'utils'
-require_relative 'pirage'
 
 module Pixiv
   class Illust
@@ -60,8 +59,8 @@ class ILovePixiv
         #jobs = Hash[jobs.to_a.sample(4)]
         #p jobs
         filter_jobs_to_illusts(jobs, posted_illust_ids) {|illusts|
-          puts 'post_illust_to_pirage:'
-          post_illust_to_pirage(illusts, jobs) {|posted_illusts|
+          puts 'post_illust_to_vimage:'
+          post_illust_to_vimage(illusts, jobs) {|posted_illusts|
             posted_illust_ids += posted_illusts.map{|e| e.illust_id}
             p posted_illusts.map{|e| e.title}
             EM.stop
@@ -74,8 +73,8 @@ class ILovePixiv
   def fetch_jobs
     multi = EM::MultiRequest.new
 
-    multi.add :simple_illust_ids_fetcher, SimpleIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
-    multi.add :famous_illust_ids_fetcher, FamousIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
+    #multi.add :simple_illust_ids_fetcher, SimpleIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
+    #multi.add :famous_illust_ids_fetcher, FamousIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
     multi.add :recommended_illust_ids_fetcher, RecommendedIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
 
     multi.callback {
@@ -107,28 +106,37 @@ class ILovePixiv
     })
   end
 
-  def post_illust_to_pirage(illusts, jobs)
+  def post_illust_to_vimage(illusts, jobs)
     posted_illusts = []
-    EM::Iterator.new(illusts, 10).each(proc{|illust, iter|
+    EM::Iterator.new(illusts, 5).each(proc{|illust, iter|
       url = illust.medium_image_url
       http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)
       http.callback {
-        #XXX
+        medium_image = http.response.force_encoding('UTF-8')
         tags = illust.tag_names
         tags << 'R-00' if (['R-18', 'R-18G'] & illust.tag_names).length == 0
         tags << jobs[illust.illust_id][:name]
-        p Pirage.post(
-          illust.member_name || '',
-          illust.title,
-          illust.url,
-          tags,
-          illust.title,
-          http.response.force_encoding('UTF-8')
 
+        url = 'http://vimage.herokuapp.com/images/new'
+        http = EM::HttpRequest.new(url, @con_opts.merge({ connect_timeout: 10, inactivity_timeout: 30 })).post(
+          body: {
+            title: "#{illust.member_name} - #{illust.title}",
+            url: illust.url,
+            tags: tags.join(' '),
+            base64: Base64::encode64(medium_image),
+          },
+          head: @req_opts,
         )
-        posted_illusts << illust
-        print '.'
-        iter.next
+
+        http.callback {
+          posted_illusts << illust
+          print '.'
+          iter.next
+        }
+        http.errback {
+          p http.error
+          iter.next
+        }
       }
       http.errback {
         p http.error
