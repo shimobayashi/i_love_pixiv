@@ -73,8 +73,8 @@ class ILovePixiv
   def fetch_jobs
     multi = EM::MultiRequest.new
 
-    #multi.add :simple_illust_ids_fetcher, SimpleIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
-    #multi.add :famous_illust_ids_fetcher, FamousIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
+    multi.add :simple_illust_ids_fetcher, SimpleIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
+    multi.add :famous_illust_ids_fetcher, FamousIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
     multi.add :recommended_illust_ids_fetcher, RecommendedIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
 
     multi.callback {
