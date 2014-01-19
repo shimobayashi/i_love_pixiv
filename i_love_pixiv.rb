@@ -79,7 +79,7 @@ class ILovePixiv
 
   def filter_jobs_to_illusts(jobs, posted_illust_ids)
     illust_ids = jobs.keys - posted_illust_ids
-    illust_ids.uniq!.shuffle! # 似たようなjobが固まると連続で失敗した時全滅したりフィードの最新が埋め尽くされたりされそうなので混ぜとく
+    illust_ids.shuffle! # 似たようなjobが固まると連続で失敗した時全滅したりフィードの最新が埋め尽くされたりされそうなので混ぜとく
     illusts = []
     EM::Iterator.new(illust_ids, 10).each(proc{|illust_id, iter|
       url = Pixiv::Illust.url(illust_id)
