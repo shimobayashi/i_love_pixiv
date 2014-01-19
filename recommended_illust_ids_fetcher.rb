@@ -29,7 +29,7 @@ class RecommendedIllustIdsFetcher < EM::DefaultDeferrable
     page = @pixiv.agent.get 'http://www.pixiv.net/rpc/recommender.php', {
       type: 'user',
       sample_users: sample_users,
-      num_recommendations: 20,
+      num_recommendations: 20, # これがそのままjob数になる
       following_booster_model: 1,
       tt: tt,
     }, 'http://www.pixiv.net/search_user.php'

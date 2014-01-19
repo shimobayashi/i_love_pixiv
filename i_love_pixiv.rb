@@ -11,6 +11,7 @@ require_relative 'famous_illust_ids_fetcher'
 require_relative 'recommended_illust_ids_fetcher'
 require_relative 'utils'
 require_relative 'pixiv_gem_monkey_patch'
+require_relative 'famous_in_bookmarks_illust_ids_fetcher'
 
 class ILovePixiv
   include Utils
@@ -68,6 +69,7 @@ class ILovePixiv
     multi.add :simple_illust_ids_fetcher, SimpleIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
     multi.add :famous_illust_ids_fetcher, FamousIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
     multi.add :recommended_illust_ids_fetcher, RecommendedIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
+    multi.add :famous_in_bookmarks_illust_ids_fetcher, FamousInBookmarksIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
 
     multi.callback {
       jobs = multi.responses[:callback].values.map{|e| e.jobs}.inject{|memo, item| memo.merge(item)} # 上書きする可能性あり
@@ -77,6 +79,7 @@ class ILovePixiv
 
   def filter_jobs_to_illusts(jobs, posted_illust_ids)
     illust_ids = jobs.keys - posted_illust_ids
+    illust_ids.uniq!.shuffle! # 似たようなjobが固まると連続で失敗した時全滅したりフィードの最新が埋め尽くされたりされそうなので混ぜとく
     illusts = []
     EM::Iterator.new(illust_ids, 10).each(proc{|illust_id, iter|
       url = Pixiv::Illust.url(illust_id)
