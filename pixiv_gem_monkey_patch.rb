@@ -1,3 +1,5 @@
+# -*- encoding: utf-8 -*-
+
 #XXX 本家にコミットしたい
 module Pixiv
   class Illust
