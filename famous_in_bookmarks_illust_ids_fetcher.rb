@@ -48,7 +48,7 @@ class FamousInBookmarksIllustIdsFetcher < EM::DefaultDeferrable
 
     count_by_illust_id = Hash.new(0)
     EM::Iterator.new(illust_ids, 10).each(proc{|illust_id, iter|
-      url = "http://www.pixiv.net/rpc/recommender.php?type=illust&sample_illusts=#{illust_id}&num_recommendations=100&tt=#{tt}"
+      url = "http://www.pixiv.net/rpc/recommender.php?type=illust&sample_illusts=#{illust_id}&num_recommendations=300&tt=#{tt}"
       http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)
       http.callback {
         json = JSON.load(http.response)

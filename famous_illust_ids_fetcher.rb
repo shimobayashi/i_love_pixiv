@@ -55,7 +55,7 @@ class FamousIllustIdsFetcher < EM::DefaultDeferrable
   def fetch_jobs(member_ids)
     urls = []
     member_ids.each {|member_id|
-      (1..3).each {|p|
+      (1..5).each {|p|
         url = "#{Pixiv::ROOT_URL}/bookmark.php?id=#{member_id}&rest=show&p=#{p}"
         urls << url
       }
