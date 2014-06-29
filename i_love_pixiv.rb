@@ -64,6 +64,10 @@ class ILovePixiv
   end
 
   def fetch_jobs
+    #jobs = {44298467 => {name: :test, score_threshold: 0}}
+    #yield jobs
+    #return
+
     multi = EM::MultiRequest.new
 
     multi.add :simple_illust_ids_fetcher, SimpleIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
@@ -105,6 +109,7 @@ class ILovePixiv
     posted_illusts = []
     EM::Iterator.new(illusts, 5).each(proc{|illust, iter|
       url = illust.medium_image_url
+      url = illust.small_image_url if url == 'http://source.pixiv.net/common/images/icon_ie.png' # うごイラだとこの画像になってしまうので雑に対応
       http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)
       http.callback {
         medium_image = http.response.force_encoding('UTF-8')
