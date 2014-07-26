@@ -3,7 +3,7 @@
 #XXX 本家にコミットしたい
 module Pixiv
   class Illust
-    lazy_attr_reader(:illust_id) { at!('link[rel="alternate"][hreflang="ja"]')[:href][/illust_id=(\d+)/, 1].to_i }
+    lazy_attr_reader(:illust_id) { at!('meta[property="og:url"]')[:content][/illust_id=(\d+)/, 1].to_i }
     lazy_attr_reader(:member_id) {
       at!('a.user-link')[:href][/id=(\d+)/, 1].to_i
     }
