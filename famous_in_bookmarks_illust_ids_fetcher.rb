@@ -35,9 +35,10 @@ class FamousInBookmarksIllustIdsFetcher < EM::DefaultDeferrable
   def fetch_bookmarked_illust_ids
     me = @pixiv.member
     illust_ids = []
-    me.bookmarks.each {|illust|
-      illust_ids << illust.illust_id
-      break if illust_ids.size >= 100
+    (1..5).each {|page|
+        me.bookmark_list(page).illust_hashes.each {|attrs|
+          illust_ids << attrs[:illust_id]
+        }
     }
     yield illust_ids
   end
