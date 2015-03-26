@@ -2,6 +2,23 @@
 
 #XXX 本家にコミットしたい
 module Pixiv
+  class Client
+    # Log in to Pixiv
+    # @param [String] pixiv_id
+    # @param [String] password
+    def login(pixiv_id, password)
+      doc = agent.get("#{ROOT_URL}/index.php")
+      return if doc && doc.body =~ /logout/
+      form = doc.forms_with(action: 'https://www.secure.pixiv.net/login.php').first
+      puts doc.body and raise Error::LoginFailed, 'login form is not available' unless form
+      form.pixiv_id = pixiv_id
+      form.pass = password
+      doc = agent.submit(form)
+      raise Error::LoginFailed unless doc && doc.body =~ /logout/
+      @member_id = member_id_from_mypage(doc)
+    end
+  end
+
   class Illust
     lazy_attr_reader(:illust_id) { at!('meta[property="og:url"]')[:content][/illust_id=(\d+)/, 1].to_i }
     lazy_attr_reader(:member_id) {
