@@ -25,7 +25,7 @@ class RecommendedIllustIdsFetcher < EM::DefaultDeferrable
   def fetch
     page = @pixiv.agent.get 'http://www.pixiv.net/search_user.php'
     tt = page.at('input[name="tt"]')[:value]
-    sample_users = page.body[/pixiv\.context\.userRecommendSampleUser = '(.+?)';/, 1]
+    sample_users = page.body[/pixiv\.context\.userRecommendSampleUser = "(.+?)"/, 1]
     page = @pixiv.agent.get 'http://www.pixiv.net/rpc/recommender.php', {
       type: 'user',
       sample_users: sample_users,
@@ -34,8 +34,19 @@ class RecommendedIllustIdsFetcher < EM::DefaultDeferrable
       tt: tt,
     }, 'http://www.pixiv.net/search_user.php'
     json = JSON.load(page.body)
-    json['users'].each {|user|
-      illust_id = user['illusts'][0]['illust_id'].to_i
+    json['user_ids'].each {|user_id|
+      page = @pixiv.agent.get 'http://www.pixiv.net/rpc/get_profile.php', {
+        user_ids: user_id,
+        illust_num: 4,
+        get_illust_count: 1,
+        tt: tt,
+      }, 'http://www.pixiv.net/search_user.php'
+      json = JSON.load(page.body)
+
+      illusts = json['body'][0]['illusts']
+      next unless illusts && illusts[0]
+      illust_id = illusts[0]['illust_id'].to_i
+
       @jobs[illust_id] = {name: :recommend, score_threshold: 1000}
     }
 
