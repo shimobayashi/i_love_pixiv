@@ -61,7 +61,7 @@ class RecommendedIllustIdsFetcher < EM::DefaultDeferrable
     }, 'http://www.pixiv.net/bookmark.php'
     json = JSON.load(page.body)
     json['recommendations'].each {|illust_id|
-      @jobs[illust_id] = {name: :recommend, score_threshold: 300}
+      @jobs[illust_id] = {name: :recommend_by_bookmark, score_threshold: 300}
     }
 
     succeed @jobs
