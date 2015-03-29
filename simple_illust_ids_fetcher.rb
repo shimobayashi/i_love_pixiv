@@ -45,18 +45,18 @@ class SimpleIllustIdsFetcher < EM::DefaultDeferrable
       }
     }
     # ranking
-    [
-      {query: 'daily', score_threshold: 80000},
-      {query: 'daily_r18', score_threshold: 10000},
-      {query: 'r18g', score_threshold: 4000},
-    ].each {|mode|
-      url = "#{Pixiv::ROOT_URL}/ranking.php?mode=#{mode[:query]}"
-      multi.add({
-        name: :ranking,
-        mode: mode,
-        score_threshold: mode[:score_threshold],
-      }, EM::HttpRequest.new(url, @con_opts).get(@req_opts))
-    }
+    #[
+    #  {query: 'daily', score_threshold: 80000},
+    #  {query: 'daily_r18', score_threshold: 10000},
+    #  {query: 'r18g', score_threshold: 4000},
+    #].each {|mode|
+    #  url = "#{Pixiv::ROOT_URL}/ranking.php?mode=#{mode[:query]}"
+    #  multi.add({
+    #    name: :ranking,
+    #    mode: mode,
+    #    score_threshold: mode[:score_threshold],
+    #  }, EM::HttpRequest.new(url, @con_opts).get(@req_opts))
+    #}
 
     multi.callback {
       log_multi_stat(multi)
