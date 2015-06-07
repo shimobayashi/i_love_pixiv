@@ -72,11 +72,11 @@ class ILovePixiv
     jobs = {}
     puts 'task_name:'
     puts task_name
-    #SimpleIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
-    #FamousIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
-    #RecommendedIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
-    #FamousInBookmarksIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
-    #SmartSearchIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
+    #SimpleIllustIdsFetcher
+    #FamousIllustIdsFetcher
+    #RecommendedIllustIdsFetcher
+    #FamousInBookmarksIllustIdsFetcher
+    #SmartSearchIllustIdsFetcher
     Object.const_get(task_name).new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
       jobs.merge!(j)
       yield jobs
