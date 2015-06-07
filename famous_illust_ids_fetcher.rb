@@ -55,7 +55,7 @@ class FamousIllustIdsFetcher
   def fetch_jobs(member_ids)
     urls = []
     member_ids.each {|member_id|
-      (1..5).each {|p|
+      (1..2).each {|p|
         url = "#{Pixiv::ROOT_URL}/bookmark.php?id=#{member_id}&rest=show&p=#{p}"
         urls << url
       }
@@ -76,7 +76,7 @@ class FamousIllustIdsFetcher
         iter.next
       }
     }, proc{
-      illust_ids = count_by_illust_id.reject{|k, v| v < 2}.keys
+      illust_ids = count_by_illust_id.reject{|k, v| v < 5}.keys
       jobs = {}
       illust_ids.each {|illust_id|
         jobs[illust_id] = {name: :famous, score_threshold: 100}

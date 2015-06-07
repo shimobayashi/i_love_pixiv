@@ -37,7 +37,7 @@ class ILovePixiv
     }
   end
 
-  def run
+  def run(task_name)
     posted_illust_ids = Marshal.load(open('posted_illust_ids.marshal')) rescue []
     #p posted_illust_ids
     at_exit {
@@ -48,7 +48,7 @@ class ILovePixiv
 
     EM.run {
       puts 'fetch_jobs:'
-      fetch_jobs {|jobs|
+      fetch_jobs(task_name) {|jobs|
         puts 'filter_jobs_to_illusts:'
         #jobs = Hash[jobs.to_a.sample(4)]
         #p jobs
@@ -64,32 +64,22 @@ class ILovePixiv
     }
   end
 
-  def fetch_jobs
+  def fetch_jobs(task_name)
     #jobs = {44298467 => {name: :test, score_threshold: 0}}
     #yield jobs
     #return
 
     jobs = {}
-    SimpleIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
-      puts 'SimpleIllustIdsFetcher'
+    puts 'task_name:'
+    puts task_name
+    #SimpleIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
+    #FamousIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
+    #RecommendedIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
+    #FamousInBookmarksIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
+    #SmartSearchIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
+    Object.const_get(task_name).new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
       jobs.merge!(j)
-      FamousIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
-        puts 'FamousIllustIdsFetcher'
-        jobs.merge!(j)
-        RecommendedIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
-          puts 'RecommendedIllustIdsFetcher'
-          jobs.merge!(j)
-          FamousInBookmarksIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
-            puts 'FamousInBookmarksIllustIdsFetcher'
-            jobs.merge!(j)
-            SmartSearchIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
-              puts 'SmartSearchIllustIdsFetcher'
-              jobs.merge!(j)
-              yield jobs
-            }
-          }
-        }
-      }
+      yield jobs
     }
   end
 
@@ -161,4 +151,4 @@ class ILovePixiv
   end
 end
 
-ILovePixiv.new.run
+ILovePixiv.new.run(ARGV[0])
