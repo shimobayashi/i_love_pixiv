@@ -6,7 +6,7 @@ require_relative 'utils'
 
 # ブックマークしたイラストのレコメンドから重複するイラストIDを取得する
 #
-class FamousInBookmarksIllustIdsFetcher < EM::DefaultDeferrable
+class FamousInBookmarksIllustIdsFetcher
   include Utils
 
   attr_reader :jobs
@@ -25,7 +25,7 @@ class FamousInBookmarksIllustIdsFetcher < EM::DefaultDeferrable
       #p illust_ids
       fetch_jobs(illust_ids) {|jobs|
         @jobs = jobs
-        succeed @jobs
+        yield @jobs
       }
     }
 
@@ -36,9 +36,9 @@ class FamousInBookmarksIllustIdsFetcher < EM::DefaultDeferrable
     me = @pixiv.member
     illust_ids = []
     (1..5).each {|page|
-        me.bookmark_list(page).illust_hashes.each {|attrs|
-          illust_ids << attrs[:illust_id]
-        }
+      me.bookmark_list(page).illust_hashes.each {|attrs|
+        illust_ids << attrs[:illust_id] if attrs
+      }
     }
     yield illust_ids
   end

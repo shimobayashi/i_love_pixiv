@@ -69,17 +69,27 @@ class ILovePixiv
     #yield jobs
     #return
 
-    multi = EM::MultiRequest.new
-
-    multi.add :simple_illust_ids_fetcher, SimpleIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
-    multi.add :famous_illust_ids_fetcher, FamousIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
-    multi.add :recommended_illust_ids_fetcher, RecommendedIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
-    multi.add :famous_in_bookmarks_illust_ids_fetcher, FamousInBookmarksIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
-    multi.add :smart_search_illust_ids_fetcher, SmartSearchIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch
-
-    multi.callback {
-      jobs = multi.responses[:callback].values.map{|e| e.jobs}.inject{|memo, item| memo.merge(item)} # 上書きする可能性あり
-      yield jobs
+    jobs = {}
+    SimpleIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
+      puts 'SimpleIllustIdsFetcher'
+      jobs.merge!(j)
+      FamousIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
+        puts 'FamousIllustIdsFetcher'
+        jobs.merge!(j)
+        RecommendedIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
+          puts 'RecommendedIllustIdsFetcher'
+          jobs.merge!(j)
+          FamousInBookmarksIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
+            puts 'FamousInBookmarksIllustIdsFetcher'
+            jobs.merge!(j)
+            SmartSearchIllustIdsFetcher.new(@config, @pixiv, @con_opts, @req_opts).fetch {|j|
+              puts 'SmartSearchIllustIdsFetcher'
+              jobs.merge!(j)
+              yield jobs
+            }
+          }
+        }
+      }
     }
   end
 

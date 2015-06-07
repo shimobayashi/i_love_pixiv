@@ -8,7 +8,7 @@ require_relative 'utils'
 
 # おすすめユーザーからイラストIDを取得する
 #
-class RecommendedIllustIdsFetcher < EM::DefaultDeferrable
+class RecommendedIllustIdsFetcher
   include Utils
 
   attr_reader :jobs
@@ -64,7 +64,7 @@ class RecommendedIllustIdsFetcher < EM::DefaultDeferrable
       @jobs[illust_id] = {name: :recommend_by_bookmark, score_threshold: 300}
     }
 
-    succeed @jobs
+    yield @jobs
 
     self
   end

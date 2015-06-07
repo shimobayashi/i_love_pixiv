@@ -7,7 +7,7 @@ require_relative 'utils'
 
 # 単純に取得できるイラストIDを取得する
 #
-class SimpleIllustIdsFetcher < EM::DefaultDeferrable
+class SimpleIllustIdsFetcher
   include Utils
 
   attr_reader :jobs
@@ -22,26 +22,28 @@ class SimpleIllustIdsFetcher < EM::DefaultDeferrable
   end
 
   def fetch
-    multi = EM::MultiRequest.new
+    tasks = []
     # bookmark_new_illust
     (1..5).each {|p|
       url = "#{Pixiv::ROOT_URL}/bookmark_new_illust.php?p=#{p}"
-      multi.add({
+      tasks << {
+        url: url,
         name: :bookmark_new_illust,
         page: p,
         score_threshold: 100,
-      }, EM::HttpRequest.new(url, @con_opts).get(@req_opts))
+      }
     }
     # search
     @config[:favorite_tags].each {|tag|
       (1..10).each {|p|
         url = Pixiv::SearchResultList.url(tag[:query], page: p)
-        multi.add({
+        tasks << {
+          url: url,
           name: :search,
           tag: tag,
           page: p,
           score_threshold: tag[:score_threshold],
-        }, EM::HttpRequest.new(url, @con_opts).get(@req_opts))
+        }
       }
     }
     # ranking
@@ -58,16 +60,25 @@ class SimpleIllustIdsFetcher < EM::DefaultDeferrable
     #  }, EM::HttpRequest.new(url, @con_opts).get(@req_opts))
     #}
 
-    multi.callback {
-      log_multi_stat(multi)
-      multi.responses[:callback].each {|name, conn|
-        illust_ids = extract_illust_ids(conn.response)
+    EM::Iterator.new(tasks, 10).each(proc{|task, iter|
+      url = task[:url]
+      name = task[:name]
+      http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)
+      http.callback {
+        illust_ids = extract_illust_ids(http.response)
         illust_ids.each {|illust_id|
-          @jobs[illust_id] = name # 上書きする可能性あり
+          @jobs[illust_id] = task # 上書きする可能性あり
         }
+        print '.'
+        iter.next
       }
-      succeed(@jobs)
-    }
+      http.errback {
+        p http.error
+        iter.next
+      }
+    }, proc{
+      yield @jobs
+    })
 
     self
   end

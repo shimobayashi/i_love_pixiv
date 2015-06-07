@@ -7,7 +7,7 @@ require_relative 'utils'
 
 # 直近のブックマークの中から適当なタグを選んで検索し、そのイラストIDを取得する
 #
-class SmartSearchIllustIdsFetcher < EM::DefaultDeferrable
+class SmartSearchIllustIdsFetcher
   include Utils
 
   attr_reader :jobs
@@ -47,7 +47,7 @@ class SmartSearchIllustIdsFetcher < EM::DefaultDeferrable
                 @jobs[illust_id] = name
               }
             }
-            succeed(@jobs)
+            yield @jobs
           }
         }
       }

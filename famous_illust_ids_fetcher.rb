@@ -7,7 +7,7 @@ require_relative 'utils'
 
 # 複数Followingがお気に入り登録しているイラストIDを取得する
 #
-class FamousIllustIdsFetcher < EM::DefaultDeferrable
+class FamousIllustIdsFetcher
   include Utils
 
   attr_reader :jobs
@@ -25,7 +25,7 @@ class FamousIllustIdsFetcher < EM::DefaultDeferrable
     fetch_following_member_ids {|member_ids|
       fetch_jobs(member_ids) {|jobs|
         @jobs = jobs
-        succeed @jobs
+        yield @jobs
       }
     }
 
