@@ -119,7 +119,8 @@ class ILovePixiv
         tags << 'R-00' if (['R-18', 'R-18G'] & illust.tag_names).length == 0
         tags << jobs[illust.illust_id][:name]
 
-        url = 'http://vimage.herokuapp.com/images/new'
+        #url = 'http://vimage.herokuapp.com/images/new'
+        url = "#{ENV['VIMAGE_ROOT']}images/new"
         http = EM::HttpRequest.new(url, @con_opts.merge({ connect_timeout: 10, inactivity_timeout: 30 })).post(
           body: {
             title: "#{illust.member_name} - #{illust.title}",
