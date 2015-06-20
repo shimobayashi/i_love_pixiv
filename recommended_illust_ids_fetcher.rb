@@ -50,18 +50,21 @@ class RecommendedIllustIdsFetcher
       @jobs[illust_id] = {name: :recommend, score_threshold: 1000}
     }
 
-    page = @pixiv.agent.get 'http://www.pixiv.net/bookmark.php'
-    tt = page.at('input[name="tt"]')[:value]
-    sample_illusts = page.body[/pixiv\.context\.illustRecommendSampleIllust = "(.+?)"/, 1]
-    page = @pixiv.agent.get 'http://www.pixiv.net/rpc/recommender.php', {
-      type: 'illust',
-      sample_illusts: sample_illusts,
-      num_recommendations: 20, # これがそのままjob数になる
-      tt: tt,
-    }, 'http://www.pixiv.net/bookmark.php'
-    json = JSON.load(page.body)
-    json['recommendations'].each {|illust_id|
-      @jobs[illust_id] = {name: :recommend_by_bookmark, score_threshold: 300}
+    (1..5).each {|p|
+      url = "http://www.pixiv.net/bookmark.php?p=#{p}"
+      page = @pixiv.agent.get url
+      tt = page.at('input[name="tt"]')[:value]
+      sample_illusts = page.body[/pixiv\.context\.illustRecommendSampleIllust = "(.+?)"/, 1]
+      page = @pixiv.agent.get 'http://www.pixiv.net/rpc/recommender.php', {
+        type: 'illust',
+        sample_illusts: sample_illusts,
+        num_recommendations: 20, # これがそのままjob数になる
+        tt: tt,
+      }, 'http://www.pixiv.net/bookmark.php'
+      json = JSON.load(page.body)
+      json['recommendations'].each {|illust_id|
+        @jobs[illust_id] = {name: :recommend_by_bookmark, score_threshold: 300}
+      }
     }
 
     yield @jobs
