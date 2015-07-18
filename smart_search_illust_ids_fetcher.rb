@@ -59,7 +59,7 @@ class SmartSearchIllustIdsFetcher
   def fetch_bookmarked_illust_ids
     me = @pixiv.member
     illust_ids = []
-    (1..1).each {|page|
+    (1..3).each {|page|
         me.bookmark_list(page).illust_hashes.each {|attrs|
           illust_ids << attrs[:illust_id]
         }
@@ -90,19 +90,38 @@ class SmartSearchIllustIdsFetcher
 
   def calc_interest_tags(illusts)
     tags = []
+    tag_weight = Hash.new(0)
+    sum_weight = 0
     illusts.each {|illust|
+      sum_weight += illust.tag_names.size.to_f
+      for tag in illust.tag_names
+        tag_weight[tag] += 1.0
+      end
       tags += illust.tag_names
     }
+    tags.uniq!
     tags -= ['R-18', 'R-18G']
-    count = {}
+
+    uri = URI.parse("#{ENV['VIMAGE_ROOT']}idf")
+    json = JSON.parse(Net::HTTP.get(uri))
+
+    tag_tfidf = {}
     tags.each {|tag|
-      count[tag] ? count[tag] += 1 : count[tag] = 1
+      tf = tag_weight[tag] / sum_weight
+      idf = json[tag] ? json[tag]['idf'] : 0 # IDFリストに含まれていないやつはとりあえず無視する方向で0とする
+      tfidf = tf * idf
+
+      tag_tfidf[tag] = tfidf
     }
-    sorted = count.sort_by{|k,v| -v}.map{|e| e[0]}
+    #p tag_tfidf
+
+    sorted = tag_tfidf.sort_by{|k,v| -v}.map{|e| e[0]} 
+    #p sorted
     start = (sorted.size * 0.01).round
     finish = (sorted.size * 0.03).round
 
     interest_tags = sorted[start..finish]
+    #p interest_tags
 
     yield interest_tags
   end
