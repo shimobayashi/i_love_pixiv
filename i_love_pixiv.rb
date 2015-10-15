@@ -26,7 +26,7 @@ class ILovePixiv
     @pixiv = Pixiv.client(@config[:id], @config[:password]) {|agent|
       agent.user_agent_alias = 'Mac Safari'
     }
-    @con_opts = {} #{proxy: {host: '127.0.0.1', port: 9050, type: :socks5}} # 本当は個別に設定したいが、上手く動かない
+    @con_opts = {:connect_timeout => 3, :inactivity_timeout => 5} #{proxy: {host: '127.0.0.1', port: 9050, type: :socks5}} # 本当は個別に設定したいが、上手く動かない
     @req_opts = {
       head: {
         'user-agent' => @pixiv.agent.user_agent,
