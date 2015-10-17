@@ -35,7 +35,7 @@ class FamousInBookmarksIllustIdsFetcher
   def fetch_bookmarked_illust_ids
     me = @pixiv.member
     illust_ids = []
-    (1..5).each {|page|
+    (1..2).each {|page|
       me.bookmark_list(page).illust_hashes.each {|attrs|
         illust_ids << attrs[:illust_id] if attrs
       }
