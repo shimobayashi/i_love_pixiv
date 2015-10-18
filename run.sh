@@ -1,13 +1,13 @@
 cd `dirname $0`
 bundle exec ruby newnym_poller.rb&
-timeout -sKILL 3600 torsocks bundle exec ruby i_love_pixiv.rb SimpleIllustIdsFetcher
+timeout 1h torsocks bundle exec ruby i_love_pixiv.rb SimpleIllustIdsFetcher
 echo $?
-timeout -sKILL 3600 torsocks bundle exec ruby i_love_pixiv.rb FamousIllustIdsFetcher
+timeout 1h torsocks bundle exec ruby i_love_pixiv.rb FamousIllustIdsFetcher
 echo $?
-timeout -sKILL 3600 torsocks bundle exec ruby i_love_pixiv.rb RecommendedIllustIdsFetcher
+timeout 1h torsocks bundle exec ruby i_love_pixiv.rb RecommendedIllustIdsFetcher
 echo $?
-timeout -sKILL 3600 torsocks bundle exec ruby i_love_pixiv.rb FamousInBookmarksIllustIdsFetcher
+timeout 1h torsocks bundle exec ruby i_love_pixiv.rb FamousInBookmarksIllustIdsFetcher
 echo $?
-timeout -sKILL 3600 torsocks bundle exec ruby i_love_pixiv.rb SmartSearchIllustIdsFetcher
+timeout 1h torsocks bundle exec ruby i_love_pixiv.rb SmartSearchIllustIdsFetcher
 echo $?
 kill %1
