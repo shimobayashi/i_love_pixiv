@@ -27,5 +27,6 @@ module Pixiv
     lazy_attr_reader(:member_name) {
       at!('title').inner_text[%r!「#{Regexp.escape(title)}」/「(.+)」の(?:イラスト|漫画) \[pixiv\]!, 1]
     }
+    lazy_attr_reader(:small_image_url) { at!('img.bookmark_modal_thumbnail')['data-src'] }
   end
 end
