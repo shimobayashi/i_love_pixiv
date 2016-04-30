@@ -20,12 +20,13 @@ module Pixiv
   end
 
   class Illust
-    lazy_attr_reader(:illust_id) { at!('meta[property="og:url"]')[:content][/illust_id=(\d+)/, 1].to_i }
+    lazy_attr_reader(:illust_id) { at!('textarea.ui-select-all').text[/illust_id=(\d+)/, 1].to_i }
     lazy_attr_reader(:member_id) {
       at!('a.user-link')[:href][/id=(\d+)/, 1].to_i
     }
     lazy_attr_reader(:member_name) {
       at!('title').inner_text[%r!「#{Regexp.escape(title)}」/「(.+)」の(?:イラスト|漫画) \[pixiv\]!, 1]
     }
+    lazy_attr_reader(:small_image_url) { at!('img.bookmark_modal_thumbnail')['data-src'] }
   end
 end

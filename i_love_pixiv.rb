@@ -66,6 +66,7 @@ class ILovePixiv
 
   def fetch_jobs(task_name)
     #jobs = {44298467 => {name: :test, score_threshold: 0}}
+    #jobs = {55215710 => {name: :test, score_threshold: 0}}
     #yield jobs
     #return
 
