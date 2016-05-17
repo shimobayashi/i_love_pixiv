@@ -9,8 +9,9 @@ module Pixiv
     def login(pixiv_id, password)
       doc = agent.get("#{ROOT_URL}/index.php")
       return if doc && doc.body =~ /logout/
-      form = doc.forms_with(action: 'https://www.pixiv.net/login.php').first
-      puts doc.body and raise Error::LoginFailed, 'login form is not available' unless form
+      doc = agent.get( "https://www.pixiv.net/reminder.php" )
+      form = doc.forms_with(action: "/login.php").first
+      raise Error::LoginFailed, 'login form is not available' unless form
       form.pixiv_id = pixiv_id
       form.pass = password
       doc = agent.submit(form)
