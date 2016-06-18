@@ -10,4 +10,6 @@ timeout 1h torsocks bundle exec ruby i_love_pixiv.rb FamousInBookmarksIllustIdsF
 echo $?
 timeout 1h torsocks bundle exec ruby i_love_pixiv.rb SmartSearchIllustIdsFetcher
 echo $?
+timeout 1h torsocks bundle exec ruby i_love_pixiv.rb InterestInBookmarkedAuthor
+echo $?
 kill %1

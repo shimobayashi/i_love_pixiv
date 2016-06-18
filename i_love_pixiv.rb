@@ -13,6 +13,7 @@ require_relative 'utils'
 require_relative 'pixiv_gem_monkey_patch'
 require_relative 'famous_in_bookmarks_illust_ids_fetcher'
 require_relative 'smart_search_illust_ids_fetcher'
+require_relative 'interest_in_bookmarked_author'
 
 class ILovePixiv
   include Utils
@@ -22,6 +23,7 @@ class ILovePixiv
       id: 'your_id',
       password: 'your_password',
       favorite_tags: [{query: 'your_query', score_threshold: 100}],
+      interest_words: [{query: 'your_query', score_threshold: 100}],
     })
     @pixiv = Pixiv.client(@config[:id], @config[:password]) {|agent|
       agent.user_agent_alias = 'Mac Safari'
