@@ -1,6 +1,5 @@
 # -*- encoding: utf-8 -*-
 
-#XXX 本家にコミットしたい
 module Pixiv
   class Client
     # Log in to Pixiv
@@ -9,11 +8,11 @@ module Pixiv
     def login(pixiv_id, password)
       doc = agent.get("#{ROOT_URL}/index.php")
       return if doc && doc.body =~ /logout/
-      doc = agent.get( "https://www.pixiv.net/reminder.php" )
-      form = doc.forms_with(action: "/login.php").first
+      doc = agent.get( "https://accounts.pixiv.net/login" )
+      form = doc.forms_with(action: "/login").first
       raise Error::LoginFailed, 'login form is not available' unless form
       form.pixiv_id = pixiv_id
-      form.pass = password
+      form.password = password
       doc = agent.submit(form)
       raise Error::LoginFailed unless doc && doc.body =~ /logout/
       @member_id = member_id_from_mypage(doc)
@@ -29,6 +28,14 @@ module Pixiv
       at!('title').inner_text[%r!「#{Regexp.escape(title)}」/「(.+)」の(?:イラスト|漫画) \[pixiv\]!, 1]
     }
     lazy_attr_reader(:small_image_url) { at!('img.bookmark_modal_thumbnail')['data-src'] }
+    lazy_attr_reader(:caption) { # 本家からのコピペ。めんどくて追従させてないのでひどい
+       node = doc.at('.work-info .caption')
+       if node
+         node.inner_text
+       else
+         ""
+       end
+     }
   end
 
   class OwnedIllustList < IllustList

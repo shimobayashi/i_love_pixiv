@@ -41,6 +41,7 @@ class InterestInBookmarkedAuthor
         member_ids << attrs[:member_id] if attrs
       }
     }
+    member_ids.uniq!
     yield member_ids 
   end
 
@@ -57,7 +58,7 @@ class InterestInBookmarkedAuthor
     EM::Iterator.new(urls, 10).each(proc{|url, iter|
       http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)
       http.callback {
-        illust_ids.concat(extract_illust_ids)
+        illust_ids.concat(extract_illust_ids(http.response))
         print '.'
         iter.next
       }
