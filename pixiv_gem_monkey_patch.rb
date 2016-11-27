@@ -44,4 +44,11 @@ module Pixiv
       doc.body[/pixiv\.context\.userId = "(\d+)"/, 1].to_i
     }
   end
+
+  class OwnedIllustList < IllustList
+    # @return [Integer]
+    lazy_attr_reader(:member_id) {
+      doc.body[/pixiv\.context\.userId = "(\d+)"/, 1].to_i
+    }
+  end
 end
