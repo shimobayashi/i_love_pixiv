@@ -36,6 +36,7 @@ module Pixiv
          ""
        end
      }
+    lazy_attr_reader(:score) { at!('.rated-count').inner_text.to_i * 10 } # レーティングからいいね！に変わった
   end
 
   class OwnedIllustList < IllustList
