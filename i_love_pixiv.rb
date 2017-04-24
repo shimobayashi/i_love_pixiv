@@ -35,7 +35,8 @@ class ILovePixiv
         'accept-language' => 'ja',
         'referer' => 'http://www.pixiv.net/mypage.php',
         'cookie' => @pixiv.agent.cookie_jar.to_a,
-      }
+      },
+      redirects: 1, # https化の影響でhttpへのアクセスがリダイレクトされるようになっていた
     }
   end
 
