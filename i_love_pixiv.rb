@@ -115,7 +115,7 @@ class ILovePixiv
     posted_illusts = []
     EM::Iterator.new(illusts, 5).each(proc{|illust, iter|
       url = illust.medium_image_url
-      url = illust.small_image_url if url == 'http://source.pixiv.net/common/images/icon_ie.png' # うごイラだとこの画像になってしまうので雑に対応
+      url = illust.small_image_url if url == 'https://source.pixiv.net/common/images/icon_ie.png' # うごイラだとこの画像になってしまうので雑に対応
       http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)
       http.callback {
         medium_image = http.response.force_encoding('UTF-8')
