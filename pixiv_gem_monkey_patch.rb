@@ -17,6 +17,12 @@ module Pixiv
       raise Error::LoginFailed unless doc && doc.body =~ /logout/
       @member_id = member_id_from_mypage(doc)
     end
+
+    def member_id_from_mypage(doc)
+      elem = doc.at('a.user-link') || doc.at('div.ui-layout-west a._user-icon')
+      raise 'elem not found!' unless elem
+      elem['href'][/\d+$/].to_i
+    end
   end
 
   class Illust
