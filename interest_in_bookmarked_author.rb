@@ -36,12 +36,14 @@ class InterestInBookmarkedAuthor
   def fetch_bookmarked_member_ids
     me = @pixiv.member
     member_ids = []
-    (1..2).each {|page|
-      me.bookmark_list(page).illust_hashes.each {|attrs|
-        member_ids << attrs[:member_id] if attrs
-      }
+    (1..2).each {|p|
+      url = "#{Pixiv::ROOT_URL}/bookmark.php?rest=show&p=#{p}"
+      page = @pixiv.agent.get url
+      member_ids.concat(extract_member_ids(page.content))
     }
     member_ids.uniq!
+    p 'member_ids:'
+    p member_ids
     yield member_ids 
   end
 

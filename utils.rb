@@ -6,6 +6,11 @@ module Utils
     doc.search('a.work').map{|e| $1.to_i if e[:href] =~ /illust_id=(\d+)/}
   end
 
+  def extract_member_ids(html)
+    doc = Nokogiri::HTML(html)
+    doc.search('a.user').map{|e| $1.to_i if e[:href] =~ /id=(\d+)/}
+  end
+
   def log_multi_stat(multi)
     multi.responses[:errback].values.each {|conn|
       p conn.error
