@@ -57,7 +57,7 @@ class InterestInBookmarkedAuthor
     }
 
     illust_ids = []
-    EM::Iterator.new(urls, 10).each(proc{|url, iter|
+    EM::Iterator.new(urls, 2).each(proc{|url, iter|
       http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)
       http.callback {
         illust_ids.concat(extract_illust_ids(http.response))
@@ -75,7 +75,7 @@ class InterestInBookmarkedAuthor
 
   def fetch_jobs(illust_ids)
     jobs = {}
-    EM::Iterator.new(illust_ids, 10).each(proc{|illust_id, iter|
+    EM::Iterator.new(illust_ids, 2).each(proc{|illust_id, iter|
       url = Pixiv::Illust.url(illust_id)
       http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)
       http.callback {

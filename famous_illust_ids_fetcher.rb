@@ -63,7 +63,7 @@ class FamousIllustIdsFetcher
     }
 
     count_by_illust_id = Hash.new(0)
-    EM::Iterator.new(urls, 10).each(proc{|url, iter|
+    EM::Iterator.new(urls, 2).each(proc{|url, iter|
       http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)
       http.callback {
         extract_illust_ids(http.response).each {|illust_id|

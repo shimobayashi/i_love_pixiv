@@ -71,7 +71,7 @@ class SmartSearchIllustIdsFetcher
 
   def fetch_illusts(illust_ids)
     illusts = []
-    EM::Iterator.new(illust_ids, 10).each(proc{|illust_id, iter|
+    EM::Iterator.new(illust_ids, 2).each(proc{|illust_id, iter|
       url = Pixiv::Illust.url(illust_id)
       http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)
       http.callback {

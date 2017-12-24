@@ -91,7 +91,7 @@ class ILovePixiv
     illust_ids = jobs.keys - posted_illust_ids
     illust_ids.shuffle! # 似たようなjobが固まると連続で失敗した時全滅したりフィードの最新が埋め尽くされたりされそうなので混ぜとく
     illusts = []
-    EM::Iterator.new(illust_ids, 10).each(proc{|illust_id, iter|
+    EM::Iterator.new(illust_ids, 2).each(proc{|illust_id, iter|
       url = Pixiv::Illust.url(illust_id)
       http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)
       http.callback {
@@ -113,7 +113,7 @@ class ILovePixiv
 
   def post_illust_to_vimage(illusts, jobs)
     posted_illusts = []
-    EM::Iterator.new(illusts, 5).each(proc{|illust, iter|
+    EM::Iterator.new(illusts, 2).each(proc{|illust, iter|
       url = illust.medium_image_url
       url = illust.small_image_url if url == 'https://source.pixiv.net/common/images/icon_ie.png' # うごイラだとこの画像になってしまうので雑に対応
       http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)
