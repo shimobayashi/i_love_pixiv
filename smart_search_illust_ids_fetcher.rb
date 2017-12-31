@@ -59,17 +59,19 @@ class SmartSearchIllustIdsFetcher
   def fetch_bookmarked_illust_ids
     me = @pixiv.member
     illust_ids = []
-    (1..3).each {|page|
-        me.bookmark_list(page).illust_hashes.each {|attrs|
-          illust_ids << attrs[:illust_id]
-        }
+    (1..3).each {|p|
+      url = "#{Pixiv::ROOT_URL}/bookmark.php?rest=show&p=#{p}"
+      page = @pixiv.agent.get url
+      illust_ids.concat(extract_illust_ids(page.content))
     }
+    p 'illust_ids:'
+    p illust_ids
     yield illust_ids
   end
 
   def fetch_illusts(illust_ids)
     illusts = []
-    EM::Iterator.new(illust_ids, 10).each(proc{|illust_id, iter|
+    EM::Iterator.new(illust_ids, 2).each(proc{|illust_id, iter|
       url = Pixiv::Illust.url(illust_id)
       http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)
       http.callback {

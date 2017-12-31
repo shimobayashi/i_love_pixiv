@@ -33,13 +33,14 @@ class FamousInBookmarksIllustIdsFetcher
   end
 
   def fetch_bookmarked_illust_ids
-    me = @pixiv.member
     illust_ids = []
-    (1..2).each {|page|
-      me.bookmark_list(page).illust_hashes.each {|attrs|
-        illust_ids << attrs[:illust_id] if attrs
-      }
+    (1..2).each {|p|
+      url = "#{Pixiv::ROOT_URL}/bookmark.php?rest=show&p=#{p}"
+      page = @pixiv.agent.get url
+      illust_ids.concat(extract_illust_ids(page.content))
     }
+    p 'illust_ids:'
+    p illust_ids
     yield illust_ids
   end
 
@@ -48,7 +49,7 @@ class FamousInBookmarksIllustIdsFetcher
     tt = page.at('input[name="tt"]')[:value]
 
     count_by_illust_id = Hash.new(0)
-    EM::Iterator.new(illust_ids, 10).each(proc{|illust_id, iter|
+    EM::Iterator.new(illust_ids, 2).each(proc{|illust_id, iter|
       url = "http://www.pixiv.net/rpc/recommender.php?type=illust&sample_illusts=#{illust_id}&num_recommendations=300&tt=#{tt}"
       http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)
       http.callback {

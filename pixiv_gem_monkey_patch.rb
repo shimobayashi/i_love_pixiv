@@ -1,6 +1,5 @@
 # -*- encoding: utf-8 -*-
 
-#XXX 本家にコミットしたい
 module Pixiv
   class Client
     # Log in to Pixiv
@@ -9,13 +8,20 @@ module Pixiv
     def login(pixiv_id, password)
       doc = agent.get("#{ROOT_URL}/index.php")
       return if doc && doc.body =~ /logout/
-      form = doc.forms_with(action: 'https://www.pixiv.net/login.php').first
-      puts doc.body and raise Error::LoginFailed, 'login form is not available' unless form
+      doc = agent.get( "https://accounts.pixiv.net/login" )
+      form = doc.forms_with(action: "/login").first
+      raise Error::LoginFailed, 'login form is not available' unless form
       form.pixiv_id = pixiv_id
-      form.pass = password
+      form.password = password
       doc = agent.submit(form)
       raise Error::LoginFailed unless doc && doc.body =~ /logout/
       @member_id = member_id_from_mypage(doc)
+    end
+
+    def member_id_from_mypage(doc)
+      elem = doc.at('a.user-link') || doc.at('div.ui-layout-west a._user-icon')
+      raise 'elem not found!' unless elem
+      elem['href'][/\d+$/].to_i
     end
   end
 
@@ -28,5 +34,28 @@ module Pixiv
       at!('title').inner_text[%r!「#{Regexp.escape(title)}」/「(.+)」の(?:イラスト|漫画) \[pixiv\]!, 1]
     }
     lazy_attr_reader(:small_image_url) { at!('img.bookmark_modal_thumbnail')['data-src'] }
+    lazy_attr_reader(:caption) { # 本家からのコピペ。めんどくて追従させてないのでひどい
+       node = doc.at('.work-info .caption')
+       if node
+         node.inner_text
+       else
+         ""
+       end
+     }
+    lazy_attr_reader(:score) { at!('.rated-count').inner_text.to_i * 10 } # レーティングからいいね！に変わった
+  end
+
+  class OwnedIllustList < IllustList
+    # @return [Integer]
+    lazy_attr_reader(:member_id) {
+      doc.body[/pixiv\.context\.userId = "(\d+)"/, 1].to_i
+    }
+  end
+
+  class OwnedIllustList < IllustList
+    # @return [Integer]
+    lazy_attr_reader(:member_id) {
+      doc.body[/pixiv\.context\.userId = "(\d+)"/, 1].to_i
+    }
   end
 end

@@ -13,6 +13,7 @@ require_relative 'utils'
 require_relative 'pixiv_gem_monkey_patch'
 require_relative 'famous_in_bookmarks_illust_ids_fetcher'
 require_relative 'smart_search_illust_ids_fetcher'
+require_relative 'interest_in_bookmarked_author'
 
 class ILovePixiv
   include Utils
@@ -22,6 +23,7 @@ class ILovePixiv
       id: 'your_id',
       password: 'your_password',
       favorite_tags: [{query: 'your_query', score_threshold: 100}],
+      interest_words: [{query: 'your_query', score_threshold: 100}],
     })
     @pixiv = Pixiv.client(@config[:id], @config[:password]) {|agent|
       agent.user_agent_alias = 'Mac Safari'
@@ -33,7 +35,8 @@ class ILovePixiv
         'accept-language' => 'ja',
         'referer' => 'http://www.pixiv.net/mypage.php',
         'cookie' => @pixiv.agent.cookie_jar.to_a,
-      }
+      },
+      redirects: 1, # https化の影響でhttpへのアクセスがリダイレクトされるようになっていた
     }
   end
 
@@ -88,7 +91,7 @@ class ILovePixiv
     illust_ids = jobs.keys - posted_illust_ids
     illust_ids.shuffle! # 似たようなjobが固まると連続で失敗した時全滅したりフィードの最新が埋め尽くされたりされそうなので混ぜとく
     illusts = []
-    EM::Iterator.new(illust_ids, 10).each(proc{|illust_id, iter|
+    EM::Iterator.new(illust_ids, 2).each(proc{|illust_id, iter|
       url = Pixiv::Illust.url(illust_id)
       http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)
       http.callback {
@@ -110,9 +113,9 @@ class ILovePixiv
 
   def post_illust_to_vimage(illusts, jobs)
     posted_illusts = []
-    EM::Iterator.new(illusts, 5).each(proc{|illust, iter|
+    EM::Iterator.new(illusts, 2).each(proc{|illust, iter|
       url = illust.medium_image_url
-      url = illust.small_image_url if url == 'http://source.pixiv.net/common/images/icon_ie.png' # うごイラだとこの画像になってしまうので雑に対応
+      url = illust.small_image_url if url == 'https://source.pixiv.net/common/images/icon_ie.png' # うごイラだとこの画像になってしまうので雑に対応
       http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)
       http.callback {
         medium_image = http.response.force_encoding('UTF-8')

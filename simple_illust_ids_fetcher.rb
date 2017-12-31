@@ -60,7 +60,7 @@ class SimpleIllustIdsFetcher
     #  }, EM::HttpRequest.new(url, @con_opts).get(@req_opts))
     #}
 
-    EM::Iterator.new(tasks, 10).each(proc{|task, iter|
+    EM::Iterator.new(tasks, 2).each(proc{|task, iter|
       url = task[:url]
       name = task[:name]
       http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)

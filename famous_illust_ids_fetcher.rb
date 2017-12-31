@@ -33,7 +33,8 @@ class FamousIllustIdsFetcher
   end
 
   def fetch_following_member_ids
-    last_page = @pixiv.agent.get("#{Pixiv::ROOT_URL}/bookmark.php?type=user").search('.pages:first-child li:nth-last-child(2) a').inner_text.to_i
+    last_page = @pixiv.agent.get("#{Pixiv::ROOT_URL}/bookmark.php?type=user").search('._pager-complex:first-child li:nth-last-child(2) a').inner_text.to_i
+    puts "last_page: #{last_page}"
 
     multi = EM::MultiRequest.new
     (1..last_page).each {|p|
@@ -62,7 +63,7 @@ class FamousIllustIdsFetcher
     }
 
     count_by_illust_id = Hash.new(0)
-    EM::Iterator.new(urls, 10).each(proc{|url, iter|
+    EM::Iterator.new(urls, 2).each(proc{|url, iter|
       http = EM::HttpRequest.new(url, @con_opts).get(@req_opts)
       http.callback {
         extract_illust_ids(http.response).each {|illust_id|
@@ -76,7 +77,7 @@ class FamousIllustIdsFetcher
         iter.next
       }
     }, proc{
-      illust_ids = count_by_illust_id.reject{|k, v| v < 5}.keys
+      illust_ids = count_by_illust_id.reject{|k, v| v < 2}.keys
       jobs = {}
       illust_ids.each {|illust_id|
         jobs[illust_id] = {name: :famous, score_threshold: 100}
