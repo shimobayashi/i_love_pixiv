@@ -35,7 +35,7 @@ class FamousInBookmarksIllustIdsFetcher
   def fetch_bookmarked_illust_ids
     illust_ids = []
     (1..2).each {|p|
-      url = "#{Pixiv::ROOT_URL}/bookmark.php?rest=show&p=#{p}"
+      url = "#{Pixiv::ROOT_URL}/bookmark.php?rest=hide&p=#{p}"
       page = @pixiv.agent.get url
       illust_ids.concat(extract_illust_ids(page.content))
     }
