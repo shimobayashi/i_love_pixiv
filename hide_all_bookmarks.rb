@@ -15,6 +15,10 @@ class HideAllBookmarks
   end
 
   def run
+    hide_all_illust_bookmarks
+  end
+
+  def hide_all_illust_bookmarks
     while true do
       page = @pixiv.agent.get(@pixiv.bookmark_list.url)
 
