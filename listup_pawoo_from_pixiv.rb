@@ -15,7 +15,7 @@ followees = []
 num = 0
 while true
   num += 1
-  url = "https://www.pixiv.net/bookmark.php?type=user&rest=show&p=#{num}"
+  url = "https://www.pixiv.net/bookmark.php?type=user&rest=hide&p=#{num}"
   page = pixiv.agent.get(url)
   hrefs = page.parser.search('div.userdata a').map{|e| e.attr('href')}
   break if hrefs.size == 0
