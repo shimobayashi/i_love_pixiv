@@ -37,7 +37,7 @@ class InterestInBookmarkedAuthor
     me = @pixiv.member
     member_ids = []
     (1..2).each {|p|
-      url = "#{Pixiv::ROOT_URL}/bookmark.php?rest=show&p=#{p}"
+      url = "#{Pixiv::ROOT_URL}/bookmark.php?rest=hide&p=#{p}"
       page = @pixiv.agent.get url
       member_ids.concat(extract_member_ids(page.content))
     }

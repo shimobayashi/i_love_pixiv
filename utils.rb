@@ -1,9 +1,19 @@
 require 'nokogiri'
+require 'cgi'
+require 'json'
 
 module Utils
   def extract_illust_ids(html)
     doc = Nokogiri::HTML(html)
-    doc.search('a.work').map{|e| $1.to_i if e[:href] =~ /illust_id=(\d+)/}
+
+    illust_ids = doc.search('[data-items]').map{|e|
+      JSON.parse(CGI.unescape(e.attr('data-items'))).map{|illust| illust['illustId'].to_i}
+    }.flatten
+
+    # 場所によっては古い情報の持ち方(HTMLべた書き)しているのでこっちも突っ込む
+    illust_ids.concat(doc.search('a.work').map{|e| $1.to_i if e[:href] =~ /illust_id=(\d+)/})
+
+    return illust_ids
   end
 
   def extract_member_ids(html)

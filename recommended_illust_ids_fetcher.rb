@@ -23,24 +23,24 @@ class RecommendedIllustIdsFetcher
   end
 
   def fetch
-    page = @pixiv.agent.get 'http://www.pixiv.net/search_user.php'
+    page = @pixiv.agent.get 'https://www.pixiv.net/search_user.php'
     tt = page.at('input[name="tt"]')[:value]
     sample_users = page.body[/pixiv\.context\.userRecommendSampleUser = "(.+?)"/, 1]
-    page = @pixiv.agent.get 'http://www.pixiv.net/rpc/recommender.php', {
+    page = @pixiv.agent.get 'https://www.pixiv.net/rpc/recommender.php', {
       type: 'user',
       sample_users: sample_users,
       num_recommendations: 20, # これがそのままjob数になる
       following_booster_model: 1,
       tt: tt,
-    }, 'http://www.pixiv.net/search_user.php'
+    }, 'https://www.pixiv.net/search_user.php'
     json = JSON.load(page.body)
     json['user_ids'].each {|user_id|
-      page = @pixiv.agent.get 'http://www.pixiv.net/rpc/get_profile.php', {
+      page = @pixiv.agent.get 'https://www.pixiv.net/rpc/get_profile.php', {
         user_ids: user_id,
         illust_num: 4,
         get_illust_count: 1,
         tt: tt,
-      }, 'http://www.pixiv.net/search_user.php'
+      }, 'https://www.pixiv.net/search_user.php'
       json = JSON.load(page.body)
 
       illusts = json['body'][0]['illusts']
@@ -51,16 +51,16 @@ class RecommendedIllustIdsFetcher
     }
 
     (1..5).each {|p|
-      url = "http://www.pixiv.net/bookmark.php?p=#{p}"
+      url = "https://www.pixiv.net/bookmark.php?rest=hide&p=#{p}"
       page = @pixiv.agent.get url
       tt = page.at('input[name="tt"]')[:value]
       sample_illusts = page.body[/pixiv\.context\.illustRecommendSampleIllust = "(.+?)"/, 1]
-      page = @pixiv.agent.get 'http://www.pixiv.net/rpc/recommender.php', {
+      page = @pixiv.agent.get 'https://www.pixiv.net/rpc/recommender.php', {
         type: 'illust',
         sample_illusts: sample_illusts,
         num_recommendations: 20, # これがそのままjob数になる
         tt: tt,
-      }, 'http://www.pixiv.net/bookmark.php'
+      }, 'https://www.pixiv.net/bookmark.php'
       json = JSON.load(page.body)
       json['recommendations'].each {|illust_id|
         @jobs[illust_id] = {name: :recommend_by_bookmark, score_threshold: 300}

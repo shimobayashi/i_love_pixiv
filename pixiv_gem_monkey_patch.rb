@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
 
 module Pixiv
+  ROOT_URL = 'https://www.pixiv.net'
+
   class Client
     # Log in to Pixiv
     # @param [String] pixiv_id
