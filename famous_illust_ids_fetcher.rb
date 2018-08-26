@@ -33,7 +33,7 @@ class FamousIllustIdsFetcher
   end
 
   def fetch_following_member_ids
-    last_page = @pixiv.agent.get("#{Pixiv::ROOT_URL}/bookmark.php?type=user&rest=hide").search('._pager-complex:first-child li:nth-last-child(2) a').inner_text.to_i
+    last_page = @pixiv.agent.get("#{Pixiv::ROOT_URL}/bookmark.php?type=user&rest=hide").search('._pager-complex li:nth-last-child(2) a').inner_text.to_i
     puts "last_page: #{last_page}"
 
     multi = EM::MultiRequest.new
