@@ -47,7 +47,7 @@ class RecommendedIllustIdsFetcher
       next unless illusts && illusts[0]
       illust_id = illusts[0]['illust_id'].to_i
 
-      @jobs[illust_id] = {name: :recommend, score_threshold: 1000}
+      @jobs[illust_id] = {name: :recommend, score_threshold: 30000}
     }
 
     (1..5).each {|p|
@@ -63,7 +63,7 @@ class RecommendedIllustIdsFetcher
       }, 'https://www.pixiv.net/bookmark.php'
       json = JSON.load(page.body)
       json['recommendations'].each {|illust_id|
-        @jobs[illust_id] = {name: :recommend_by_bookmark, score_threshold: 300}
+        @jobs[illust_id] = {name: :recommend_by_bookmark, score_threshold: 10000}
       }
     }
 

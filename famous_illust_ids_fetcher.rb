@@ -80,7 +80,7 @@ class FamousIllustIdsFetcher
       illust_ids = count_by_illust_id.reject{|k, v| v < 2}.keys
       jobs = {}
       illust_ids.each {|illust_id|
-        jobs[illust_id] = {name: :famous, score_threshold: 100}
+        jobs[illust_id] = {name: :famous, score_threshold: 30000}
       }
       yield jobs
     })

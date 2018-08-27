@@ -34,7 +34,7 @@ class SmartSearchIllustIdsFetcher
                 name: :smart_search,
                 tag: tag,
                 page: p,
-                score_threshold: 1000
+                score_threshold: 30000
               }, EM::HttpRequest.new(url, @con_opts).get(@req_opts))
             }
           }
