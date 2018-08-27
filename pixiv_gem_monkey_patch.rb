@@ -34,7 +34,8 @@ module Pixiv
     end
     def codepointo_to_s(str)
       # https://techracho.bpsinc.jp/baba/2013_05_31/8837
-      return str.gsub(/\\u([\da-fA-F]{4})/) { [$1].pack('H*').unpack('n*').pack('U*') }
+      s = str.gsub(/\\u([\da-fA-F]{4})/) { [$1].pack('H*').unpack('n*').pack('U*') }
+      return s.gsub('\/', '/') # スラッシュもエスケープされているようなので置換する。他にもこういう文字はあるかもしれない
     end
 
     lazy_attr_reader(:illust_id) {
