@@ -22,7 +22,8 @@ class HideAllBookmarks
   def hide_all_illust_bookmarks
     puts 'hide_all_illust_bookmarks'
     while true do
-      page = @pixiv.agent.get(@pixiv.bookmark_list.url)
+      url = 'https://www.pixiv.net/bookmark.php'
+      page = @pixiv.agent.get(url)
 
       form = page.form_with(action: 'bookmark_setting.php')
       checkboxes = form.checkboxes_with(name: 'book_id[]')
